@@ -4,17 +4,21 @@ using UnityEngine;
 
 public class Base : ACardHolder
 {
+    [SerializeField] GameManager _gameManager;
     public bool IsFull => Cards.Count == 13;
-
-    public override void RemoveCard(Card card)
-    {
-        throw new System.Exception("Card cannot be removed from Base");
-    }
-
+    
     public override void AddCard(Card card)
     {
         base.AddCard(card);
         card.GetComponent<Collider2D>().enabled = false;
+
+        if (Cards.Count == 13)
+            _gameManager.FillBase();
+    }
+
+    public override List<Card> GetCardsAbove(Card card)
+    {
+        return null;
     }
 
     public override bool CanAddCard(Card card)

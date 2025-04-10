@@ -31,7 +31,9 @@ public class Pile : ACardHolder
 
     public override void RemoveCard(Card card)
     {
+        Debug.Log($"{Cards.Count} in pile, now -1");
         int index = Cards.IndexOf(card);
+
         if (index > 0)
             if (!Cards[index - 1].IsInteractable)
                 Cards[index - 1].Flip(true);

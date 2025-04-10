@@ -10,12 +10,17 @@ public class CardManipulator : MonoBehaviour
     private Card _draggedCard;
     private List<Card> _draggedCards = new List<Card>();
     private Vector3 _offset;
-    private List<Vector2> _lastPositions;
+    private List<Vector3> _lastPositions;
+
+    public bool CAN_TOUCH_MENU;
+    public bool CAN_TOUCH_DECK;
 
     private void Awake()
     {
+        CAN_TOUCH_MENU = true;
+        CAN_TOUCH_MENU = true;
         _mainCamera = Camera.main;
-        _lastPositions = new List<Vector2>();
+        _lastPositions = new List<Vector3>();
     }
 
     private void Update()
@@ -49,27 +54,30 @@ public class CardManipulator : MonoBehaviour
 
     private void TryStartDrag()
     {
-        Vector2 mousePos = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
-        RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
-        _lastPositions.Clear();
-
-        if (hit.collider != null)
+        if (CAN_TOUCH_MENU && CAN_TOUCH_DECK)
         {
-            Card card;
-            if (hit.collider.TryGetComponent<Card>(out card))
+            Vector2 mousePos = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
+            _lastPositions.Clear();
+
+            if (hit.collider != null)
             {
-                Debug.Log($"Dragged card: suit {card.Suit} value {card.Value}");
-                if (card != null && card.IsInteractable)
+                Card card;
+                if (hit.collider.TryGetComponent<Card>(out card))
                 {
-                    _draggedCard = card;
-                    _offset = (Vector2)_draggedCard.transform.position - mousePos;
-
-                    _draggedCards = card.Holder.GetCardsAbove(card);
-
-                    foreach (var c in _draggedCards)
+                    Debug.Log($"Dragged card is interactable: {card.IsInteractable}");
+                    if (card != null && card.IsInteractable)
                     {
-                        _lastPositions.Add(c.transform.position);
-                        c.SetIsDragged(true);
+                        _draggedCard = card;
+                        _offset = (Vector2)_draggedCard.transform.position - mousePos;
+
+                        _draggedCards = card.Holder.GetCardsAbove(card);
+
+                        foreach (var c in _draggedCards)
+                        {
+                            _lastPositions.Add(c.transform.position);
+                            c.SetIsDragged(true);
+                        }
                     }
                 }
             }
@@ -102,9 +110,10 @@ public class CardManipulator : MonoBehaviour
 
         if (targetHolder != null)
         {
-            for (int i = 0; i < _draggedCards.Count; i++)
+            _draggedCards[0].MoveTo(targetHolder.GetCardPlace(), targetHolder);
+            for (int i = 1; i < _draggedCards.Count; i++)
             {
-                _draggedCards[i].MoveTo(targetHolder.GetCardPlace(), targetHolder);
+                _draggedCards[i].MoveTo(targetHolder.GetCardPlace(), targetHolder, false);
             }
         }
         else

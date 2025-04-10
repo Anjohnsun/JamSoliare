@@ -4,13 +4,13 @@ using UnityEngine;
 
 public abstract class ACardHolder : MonoBehaviour
 {
-    private List<Card> cards;
+    protected List<Card> _cards;
 
-    public List<Card> Cards => cards;
+    public List<Card> Cards => _cards;
 
     private void Awake()
     {
-        cards = new List<Card>();
+        _cards = new List<Card>();
     }
     public virtual void AddCard(Card card)
     {

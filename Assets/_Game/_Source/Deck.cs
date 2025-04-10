@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Deck : ACardHolder
 {
+    [SerializeField] private List<Card> _cardPrefabs;
     [SerializeField] private CardSetSO _cardSet;
     [SerializeField] private List<Pile> _piles;
     [SerializeField] private GameObject _cardPrefab;
@@ -11,40 +12,71 @@ public class Deck : ACardHolder
     private bool _isMouseOver;
     [SerializeField] private SharedDeck _sharedDeck;
 
+    [SerializeField] GameManager _gameManager;
+    [SerializeField] CardManipulator _cardManipulator;
+
     private void Start()
     {
-        for (int i = 0; i < 13; i++)
+        _gameManager.InitCards(_cardPrefabs);
+        InitGame();
+    }
+    public void InitGame()
+    {
+        if (_cardPrefabs.Count != 52)
         {
-            Card card = Instantiate(_cardPrefab, transform.position, Quaternion.identity).GetComponent<Card>();
-            card.Construct(_cardSet.FrontSprites1[i], _cardSet.BackSprite, 0, i, false, this);
-            Cards.Add(card);
-        }
-        for (int i = 0; i < 13; i++)
-        {
-            Card card = Instantiate(_cardPrefab, transform.position, Quaternion.identity).GetComponent<Card>();
-            card.Construct(_cardSet.FrontSprites2[i], _cardSet.BackSprite, 1, i, false, this);
-            Cards.Add(card);
-        }
-        for (int i = 0; i < 13; i++)
-        {
-            Card card = Instantiate(_cardPrefab, transform.position, Quaternion.identity).GetComponent<Card>();
-            card.Construct(_cardSet.FrontSprites3[i], _cardSet.BackSprite, 2, i, false, this);
-            Cards.Add(card);
-        }
-        for (int i = 0; i < 13; i++)
-        {
-            Card card = Instantiate(_cardPrefab, transform.position, Quaternion.identity).GetComponent<Card>();
-            card.Construct(_cardSet.FrontSprites4[i], _cardSet.BackSprite, 3, i, false, this);
-            Cards.Add(card);
+            Debug.LogError("Должно быть ровно 52 префаба карт!, а их " + Cards.Count);
+            return;
         }
 
+        _cards = _cardPrefabs;
+
+
+        for (int i = 0; i < 52; i++)
+        {
+            int suit = i / 13;
+            int value = i % 13;
+            int spriteIndex = value;
+
+            Sprite[] currentSuitSprites = suit switch
+            {
+                0 => _cardSet.FrontSprites1.ToArray(),
+                1 => _cardSet.FrontSprites2.ToArray(),
+                2 => _cardSet.FrontSprites3.ToArray(),
+                3 => _cardSet.FrontSprites4.ToArray(),
+                _ => throw new System.ArgumentOutOfRangeException()
+            };
+
+            if (spriteIndex >= currentSuitSprites.Length)
+            {
+                Debug.LogError($"Недостаточно спрайтов для масти {suit}");
+                return;
+            }
+
+            _cards[i].Construct(
+                currentSuitSprites[spriteIndex],
+                _cardSet.BackSprite,
+                suit,
+                value,
+                false,
+                this
+            );
+
+            _cards[i].transform.position = transform.position;
+        }
+
+    }
+
+    public void StartGame()
+    {
+        _cardManipulator.CAN_TOUCH_DECK = false;
         Shuffle();
-        DistributeStartCards();
+        StartCoroutine(DistributeStartCards());
     }
 
     private void OnMouseUp()
     {
-        CardToSharedDeck();
+        if (_cardManipulator.CAN_TOUCH_DECK)
+            CardToSharedDeck();
     }
 
     private void CardToSharedDeck()
@@ -54,7 +86,7 @@ public class Deck : ACardHolder
             Debug.Log($"В колоде {Cards.Count} карт");
             if (Cards.Count > 0)
             {
-                Cards[Cards.Count - 1].MoveTo(_sharedDeck.GetCardPlace(), _sharedDeck).Flip(true);
+                Cards[Cards.Count - 1].MoveAndFlip(_sharedDeck.GetCardPlace(), _sharedDeck, true);
             }
             else
             {
@@ -84,20 +116,23 @@ public class Deck : ACardHolder
         }
     }
 
-    public void DistributeStartCards()
+    public IEnumerator DistributeStartCards()
     {
-        Debug.Log("Piles: " + _piles.Count);
         for (int i = 0; i < _piles.Count - 1; i++)
         {
             for (int j = 0; j < _piles.Count - 1 - i; j++)
             {
+                yield return new WaitForSeconds(0.1f);
                 Cards[Cards.Count - 1].MoveTo(_piles[j].GetCardPlace(), _piles[j]);
             }
         }
 
         for (int i = 0; i < _piles.Count; i++)
         {
-            Cards[Cards.Count - 1].MoveTo(_piles[i].GetCardPlace(), _piles[i]).Flip(true);
+            yield return new WaitForSeconds(0.1f);
+            Cards[Cards.Count - 1].MoveAndFlip(_piles[i].GetCardPlace(), _piles[i], true);
         }
+
+        _cardManipulator.CAN_TOUCH_DECK = true;
     }
 }

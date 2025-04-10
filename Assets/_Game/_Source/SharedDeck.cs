@@ -11,27 +11,14 @@ public class SharedDeck : ACardHolder
     {
         for (int i = Cards.Count - 1; i >= 0; i--)
         {
-            Cards[i].MoveAndFlip(_deck.GetCardPlace(), _deck, false);
+            if (i == Cards.Count - 1)
+            {
+                Cards[i].MoveAndFlip(_deck.GetCardPlace(), _deck, false);
+            }
+            else
+            {
+                Cards[i].MoveAndFlip(_deck.GetCardPlace(), _deck, false, 0.3f, false);
+            }
         }
-    }
-
-    public override void AddCard(Card card)
-    {
-        base.AddCard(card);
-        for (int i = 0; i < Cards.Count - 2; i++)
-        {
-            //Cards[i].IsOpenAndLocked = false;
-        }
-        // Cards[Cards.Count - 1].IsOpenAndLocked = true;
-    }
-
-    public override void RemoveCard(Card card)
-    {
-        base.RemoveCard(card);
-        for (int i = 0; i < Cards.Count - 2; i++)
-        {
-            //     Cards[i].IsOpenAndLocked = false;
-        }
-        // Cards[Cards.Count - 1].IsOpenAndLocked = true;
     }
 }
