@@ -16,6 +16,9 @@ public class MenuManager : MonoBehaviour
 
     private void Start()
     {
+        QualitySettings.vSyncCount = 1;
+        Application.targetFrameRate = 60;
+
         _switchScenePlane.color = new Color(_switchScenePlane.color.r, _switchScenePlane.color.g, _switchScenePlane.color.b, 1);
         _switchScenePlane.DOColor(new Color(_switchScenePlane.color.r, _switchScenePlane.color.g, _switchScenePlane.color.b, 0), 1.5f).
             OnComplete(() => _switchScenePlane.gameObject.SetActive(false));
